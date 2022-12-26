@@ -45,3 +45,4 @@ build/
 ctags/
 bin/
 lib/
+*.swp

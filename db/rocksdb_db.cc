@@ -38,8 +38,11 @@ namespace ycsbc {
         options->use_direct_io_for_flush_and_compaction = true;
 
         uint64_t nums = std::stoi(props.GetProperty(CoreWorkload::RECORD_COUNT_PROPERTY));
-        uint32_t key_len = std::stoi(props.GetProperty(CoreWorkload::KEY_LENGTH));
-        uint32_t value_len = std::stoi(props.GetProperty(CoreWorkload::FIELD_LENGTH_PROPERTY));
+        //uint32_t key_len = std::stoi(props.GetProperty(CoreWorkload::KEY_LENGTH, KEY_LENGTH_DEFAULT));
+		uint32_t key_len = std::stoi(props.GetProperty(CoreWorkload::KEY_LENGTH, CoreWorkload::KEY_LENGTH_DEFAULT));
+        //uint32_t value_len = std::stoi(props.GetProperty(CoreWorkload::FIELD_LENGTH_PROPERTY));
+
+        uint32_t value_len = std::stoi(props.GetProperty(CoreWorkload::FIELD_LENGTH_PROPERTY, CoreWorkload::FIELD_LENGTH_DEFAULT));
         uint32_t cache_size = nums * (key_len + value_len) * 10 / 100; //10%
         if(cache_size < 8 << 20){   
             cache_size = 8 << 20;

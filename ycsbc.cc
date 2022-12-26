@@ -53,6 +53,12 @@ int main(const int argc, const char *argv[]) {
   wl.Init(props);
 
   const int num_threads = stoi(props.GetProperty("threadcount", "1"));
+  // rocksdb
+  //const bool load = utils::StrToBool(props.GetProperty("load","false"));
+  //const bool run = utils::StrToBool(props.GetProperty("run","false"));
+  //const bool print_stats = utils::StrToBool(props["dbstatistics"]);
+  //const bool wait_for_balance = utils::StrToBool(props["dbwaitforbalance"]);
+
 
   // Loads data
   vector<future<int>> actual_ops;
@@ -162,6 +168,14 @@ string ParseCommandLine(int argc, const char *argv[], utils::Properties &props) 
       props.SetProperty("dbpath", argv[argindex]);
       argindex++;
 
+	} else if(strcmp(argv[argindex],"-dbstatistics")==0){
+	  argindex++;
+      if(argindex >= argc){
+        UsageMessage(argv[0]);
+        exit(0);
+      }	
+      props.SetProperty("dbstatistics",argv[argindex]);
+      argindex++;
     } else {
       cout << "Unknown option '" << argv[argindex] << "'" << endl;
       exit(0);

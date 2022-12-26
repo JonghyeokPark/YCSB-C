@@ -81,7 +81,7 @@ const string CoreWorkload::OPERATION_COUNT_PROPERTY = "operationcount";
 
 void CoreWorkload::Init(const utils::Properties &p) {
   table_name_ = p.GetProperty(TABLENAME_PROPERTY,TABLENAME_DEFAULT);
-  
+  key_length_ = std::stoi(p.GetProperty(KEY_LENGTH, KEY_LENGTH_DEFAULT)); 
   field_count_ = std::stoi(p.GetProperty(FIELD_COUNT_PROPERTY,
                                          FIELD_COUNT_DEFAULT));
   field_len_generator_ = GetFieldLenGenerator(p);

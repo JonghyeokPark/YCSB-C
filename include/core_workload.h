@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <string>
+#include <cstring>
 #include "db.h"
 #include "properties.h"
 #include "generator.h"
@@ -151,7 +152,9 @@ class CoreWorkload {
   
   virtual void BuildValues(std::vector<ycsbc::DB::KVPair> &values);
   virtual void BuildUpdate(std::vector<ycsbc::DB::KVPair> &update);
-  
+
+  virtual std::string BuildMaxKey(); 
+ 
   virtual std::string NextTable() { return table_name_; }
   virtual std::string NextSequenceKey(); /// Used for loading data
   virtual std::string NextTransactionKey(); /// Used for transactions
@@ -164,7 +167,7 @@ class CoreWorkload {
   bool write_all_fields() const { return write_all_fields_; }
 
   CoreWorkload() :
-      field_count_(0), read_all_fields_(false), write_all_fields_(false),
+      key_length_(16), field_count_(0), read_all_fields_(false), write_all_fields_(false),
       field_len_generator_(NULL), key_generator_(NULL), key_chooser_(NULL),
       field_chooser_(NULL), scan_len_chooser_(NULL), insert_key_sequence_(3),
       ordered_inserts_(true), record_count_(0) {
@@ -183,6 +186,7 @@ class CoreWorkload {
   std::string BuildKeyName(uint64_t key_num);
 
   std::string table_name_;
+  int key_length_;
   int field_count_;
   bool read_all_fields_;
   bool write_all_fields_;
@@ -229,10 +233,19 @@ inline std::string CoreWorkload::BuildKeyName(uint64_t key_num) {
   if (!ordered_inserts_) {
     key_num = utils::Hash(key_num);
   }
-  std::string key_num_str = std::to_string(key_num);
-  int zeros = zero_padding_ - key_num_str.length();
-  zeros = std::max(0, zeros);
-  return std::string("user").append(zeros, '0').append(key_num_str);
+  char key_buff[key_length_ + 1];
+  sprintf(key_buff,  "%0*lx", key_length_, key_num);
+  return std::string(key_buff, key_length_);
+//  std::string key_num_str = std::to_string(key_num);
+//  int zeros = zero_padding_ - key_num_str.length();
+//  zeros = std::max(0, zeros);
+//  return std::string("user").append(zeros, '0').append(key_num_str);
+}
+
+inline std::string CoreWorkload::BuildMaxKey() {
+  char key_buff[key_length_ + 1];
+  memset(key_buff, 0xff, key_length_);
+  return std::string(key_buff, key_length_);
 }
 
 inline std::string CoreWorkload::NextFieldName() {
