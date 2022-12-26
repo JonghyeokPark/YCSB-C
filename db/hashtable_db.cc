@@ -6,11 +6,11 @@
 //  Copyright (c) 2014 Jinglei Ren <jinglei@ren.systems>.
 //
 
-#include "db/hashtable_db.h"
+#include "hashtable_db.h"
 
 #include <string>
 #include <vector>
-#include "lib/string_hashtable.h"
+#include "string_hashtable.h"
 
 using std::string;
 using std::vector;
@@ -40,7 +40,7 @@ int HashtableDB::Read(const string &table, const string &key,
   return DB::kOK;
 }
 
-int HashtableDB::Scan(const string &table, const string &key, int len,
+int HashtableDB::Scan(const string &table, const string &key, const std::string &max_key, int len,
     const vector<string> *fields, vector<vector<KVPair>> &result) {
   string key_index(table + key);
   vector<KeyHashtable::KVPair> key_pairs =

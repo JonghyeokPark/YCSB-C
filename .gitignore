@@ -39,3 +39,9 @@
 
 redis/sample
 ycsbc
+
+cscope.*
+build/
+ctags/
+bin/
+lib/

@@ -7,15 +7,15 @@
 //
 
 #include <cstring>
-#include <string>
+#include <string.h>
 #include <iostream>
 #include <vector>
 #include <future>
-#include "core/utils.h"
-#include "core/timer.h"
-#include "core/client.h"
-#include "core/core_workload.h"
-#include "db/db_factory.h"
+#include "utils.h"
+#include "timer.h"
+#include "client.h"
+#include "core_workload.h"
+#include "db_factory.h"
 
 using namespace std;
 
@@ -152,6 +152,16 @@ string ParseCommandLine(int argc, const char *argv[], utils::Properties &props) 
       }
       input.close();
       argindex++;
+
+	} else if(strcmp(argv[argindex],"-dbpath")==0){
+      argindex++;
+      if (argindex >= argc) {
+        UsageMessage(argv[0]);
+        exit(0);
+      }
+      props.SetProperty("dbpath", argv[argindex]);
+      argindex++;
+
     } else {
       cout << "Unknown option '" << argv[argindex] << "'" << endl;
       exit(0);

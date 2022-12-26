@@ -21,6 +21,9 @@ using std::string;
 const string CoreWorkload::TABLENAME_PROPERTY = "table";
 const string CoreWorkload::TABLENAME_DEFAULT = "usertable";
 
+const string CoreWorkload::KEY_LENGTH = "keylength";
+const string CoreWorkload::KEY_LENGTH_DEFAULT = "16";
+
 const string CoreWorkload::FIELD_COUNT_PROPERTY = "fieldcount";
 const string CoreWorkload::FIELD_COUNT_DEFAULT = "10";
 
