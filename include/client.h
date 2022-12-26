@@ -9,10 +9,15 @@
 #ifndef YCSB_C_CLIENT_H_
 #define YCSB_C_CLIENT_H_
 
+#include <atomic>
 #include <string>
 #include "db.h"
 #include "core_workload.h"
 #include "utils.h"
+
+// stat
+extern std::atomic<uint64_t> ops_cnt[ycsbc::Operation::READMODIFYWRITE + 1];
+extern std::atomic<uint64_t> ops_time[ycsbc::Operation::READMODIFYWRITE + 1];
 
 namespace ycsbc {
 
@@ -46,21 +51,32 @@ inline bool Client::DoInsert() {
 
 inline bool Client::DoTransaction() {
   int status = -1;
+  uint64_t start_time = get_now_micros();
   switch (workload_.NextOperation()) {
     case READ:
       status = TransactionRead();
+	  ops_time[READ].fetch_add((get_now_micros() - start_time ), std::memory_order_relaxed);
+	  ops_cnt[READ].fetch_add(1, std::memory_order_relaxed);
       break;
     case UPDATE:
       status = TransactionUpdate();
+	  ops_time[UPDATE].fetch_add((get_now_micros() - start_time ), std::memory_order_relaxed);
+	  ops_cnt[UPDATE].fetch_add(1, std::memory_order_relaxed); 
       break;
     case INSERT:
       status = TransactionInsert();
+	  ops_time[INSERT].fetch_add((get_now_micros() - start_time ), std::memory_order_relaxed);
+	  ops_cnt[INSERT].fetch_add(1, std::memory_order_relaxed);
       break;
     case SCAN:
       status = TransactionScan();
+	  ops_time[SCAN].fetch_add((get_now_micros() - start_time ), std::memory_order_relaxed);
+	  ops_cnt[SCAN].fetch_add(1, std::memory_order_relaxed); 
       break;
     case READMODIFYWRITE:
       status = TransactionReadModifyWrite();
+	  ops_time[READMODIFYWRITE].fetch_add((get_now_micros() - start_time ), std::memory_order_relaxed);
+      ops_cnt[READMODIFYWRITE].fetch_add(1, std::memory_order_relaxed);
       break;
     default:
       throw utils::Exception("Operation request is not recognized!");
