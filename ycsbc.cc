@@ -65,7 +65,6 @@ int main(const int argc, const char *argv[]) {
   //const bool print_stats = utils::StrToBool(props["dbstatistics"]);
   //const bool wait_for_balance = utils::StrToBool(props["dbwaitforbalance"]);
 
-
   // Loads data
   vector<future<int>> actual_ops;
   int total_ops = stoi(props[ycsbc::CoreWorkload::RECORD_COUNT_PROPERTY]);
@@ -227,6 +226,16 @@ string ParseCommandLine(int argc, const char *argv[], utils::Properties &props) 
       }
       props.SetProperty("dbpath", argv[argindex]);
       argindex++;
+
+	} else if(strcmp(argv[argindex],"-optpath")==0){
+      argindex++;
+      if (argindex >= argc) {
+        UsageMessage(argv[0]);
+        exit(0);
+      }
+      props.SetProperty("optfilepath", argv[argindex]);
+      argindex++;
+
 
 	} else if(strcmp(argv[argindex],"-dbstatistics")==0){
 	  argindex++;

@@ -18,6 +18,9 @@
 using ycsbc::CoreWorkload;
 using std::string;
 
+const string CoreWorkload::OPT_FILE_PATH = "optfilepath";
+const string CoreWorkload::OPT_FILE_PATH_DEFAULT = "";
+
 const string CoreWorkload::TABLENAME_PROPERTY = "table";
 const string CoreWorkload::TABLENAME_DEFAULT = "usertable";
 

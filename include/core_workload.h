@@ -31,6 +31,10 @@ enum Operation {
 
 class CoreWorkload {
  public:
+
+  static const std::string OPT_FILE_PATH;
+  static const std::string OPT_FILE_PATH_DEFAULT; 
+
   /// 
   /// The name of the database table to run queries against.
   ///

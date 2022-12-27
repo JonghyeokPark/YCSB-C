@@ -13,6 +13,8 @@
 #include <rocksdb/filter_policy.h>
 #include <rocksdb/options.h>
 #include <rocksdb/utilities/options_util.h>
+#include <rocksdb/compaction_filter.h>
+#include <rocksdb/slice.h>
 
 namespace ycsbc {
     class RocksDB : public DB{

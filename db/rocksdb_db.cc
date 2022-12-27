@@ -3,6 +3,19 @@
 #include "rocksdb_db.h"
 #include "coding.h"
 
+using ROCKSDB_NAMESPACE::BlockBasedTableOptions;
+using ROCKSDB_NAMESPACE::ColumnFamilyDescriptor;
+using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
+using ROCKSDB_NAMESPACE::ColumnFamilyOptions;
+using ROCKSDB_NAMESPACE::CompactionFilter;
+using ROCKSDB_NAMESPACE::ConfigOptions;
+using ROCKSDB_NAMESPACE::DB;
+using ROCKSDB_NAMESPACE::DBOptions;
+using ROCKSDB_NAMESPACE::NewLRUCache;
+using ROCKSDB_NAMESPACE::Options;
+using ROCKSDB_NAMESPACE::Slice;
+using ROCKSDB_NAMESPACE::Status;
+
 namespace ycsbc {
     RocksDB::RocksDB(const char *dbfilename, utils::Properties &props) :noResult(0), cache_(nullptr), dbstats_(nullptr), write_sync_(false){
         
@@ -10,7 +23,6 @@ namespace ycsbc {
         rocksdb::Options options;
         SetOptions(&options, props);
         
-
         rocksdb::Status s = rocksdb::DB::Open(options,dbfilename,&db_);
         if(!s.ok()){
             std::cerr<<"Can't open rocksdb "<<dbfilename<<" "<<s.ToString()<<std::endl;
@@ -18,12 +30,29 @@ namespace ycsbc {
         }
     }
 
+		
     void RocksDB::SetOptions(rocksdb::Options *options, utils::Properties &props) {
+
+		printf("Initializing RocksDB Options from the specified file\n");
+		std::string options_file = props.GetProperty(CoreWorkload::OPT_FILE_PATH);
+
+		// jhpark
+		ROCKSDB_NAMESPACE::Env* FLAGS_env = ROCKSDB_NAMESPACE::Env::Default();
+
+	    DBOptions db_opts;
+	    std::vector<ColumnFamilyDescriptor> cf_descs;
+
+	    if (options_file != "") {
+			auto s = LoadOptionsFromFile(options_file, FLAGS_env, &db_opts,
+                                   &cf_descs);
+	      db_opts.env = FLAGS_env;
+	      if (s.ok()) {
+	        *options = Options(db_opts, cf_descs[0].options);
+	      }
+		} else {
 
         options->create_if_missing = true;
         options->compression = rocksdb::kNoCompression;
-        //options->enable_pipelined_write = true;
-
         options->max_background_jobs = 2;
         options->max_bytes_for_level_base = 32ul * 1024 * 1024;
         options->write_buffer_size = 32ul * 1024 * 1024;
@@ -38,24 +67,13 @@ namespace ycsbc {
         options->use_direct_io_for_flush_and_compaction = true;
 
         uint64_t nums = std::stoi(props.GetProperty(CoreWorkload::RECORD_COUNT_PROPERTY));
-        //uint32_t key_len = std::stoi(props.GetProperty(CoreWorkload::KEY_LENGTH, KEY_LENGTH_DEFAULT));
 		uint32_t key_len = std::stoi(props.GetProperty(CoreWorkload::KEY_LENGTH, CoreWorkload::KEY_LENGTH_DEFAULT));
-        //uint32_t value_len = std::stoi(props.GetProperty(CoreWorkload::FIELD_LENGTH_PROPERTY));
-
         uint32_t value_len = std::stoi(props.GetProperty(CoreWorkload::FIELD_LENGTH_PROPERTY, CoreWorkload::FIELD_LENGTH_DEFAULT));
         uint32_t cache_size = nums * (key_len + value_len) * 10 / 100; //10%
-        if(cache_size < 8 << 20){   
+        if(cache_size < 8 << 20) { 
             cache_size = 8 << 20;
         }
         cache_ = rocksdb::NewLRUCache(cache_size);
-
-/*
-        if(options->table_factory->GetOptions() != nullptr){
-            rocksdb::BlockBasedTableOptions* table_options = reinterpret_cast<rocksdb::BlockBasedTableOptions*>(options->table_factory->GetOptions());
-            table_options->block_cache = cache_;
-            table_options->filter_policy.reset(rocksdb::NewBloomFilterPolicy(10,false));
-        }
-*/
 
         bool statistics = utils::StrToBool(props["dbstatistics"]);
         if(statistics){
@@ -64,6 +82,7 @@ namespace ycsbc {
         }
 
         write_sync_ = false;
+		}
     }
 
 
@@ -97,11 +116,9 @@ namespace ycsbc {
         it->Seek(key);
         std::string val;
         std::string k;
-        //printf("len:%d\n",len);
         for(int i=0;i < len && it->Valid(); i++){
             k = it->key().ToString();
             val = it->value().ToString();
-            //printf("i:%d key:%lu value:%lu\n",i,k.size(),val.size());
             it->Next();
         } 
         delete it;
@@ -113,15 +130,14 @@ namespace ycsbc {
         rocksdb::Status s;
         std::string value;
         SerializeValues(values,value);
-        /* printf("put:key:%lu-%s\n",key.size(),key.data());
-        for( auto kv : values) {
-            printf("put field:key:%lu-%s value:%lu-%s\n",kv.first.size(),kv.first.data(),kv.second.size(),kv.second.data());
-        } */
         rocksdb::WriteOptions write_options = rocksdb::WriteOptions();
+
         if(write_sync_) {
             write_options.sync = true;
         }
+
         s = db_->Put(write_options, key, value);
+
         if(!s.ok()){
             std::cerr<<"insert error\n"<<std::endl;
             exit(0);
